@@ -1,0 +1,18 @@
+You are a senior QA engineer.
+
+Analyze the following flaky test.
+
+Test Name:
+{test_name}
+
+Flakiness Score:
+{score}
+
+Failure Logs:
+{logs}
+
+Provide:
+
+1. Likely Root Cause
+2. Confidence Percentage
+3. Recommended Fix

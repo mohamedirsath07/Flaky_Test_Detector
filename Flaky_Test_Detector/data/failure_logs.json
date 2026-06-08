@@ -1,0 +1,28 @@
+{
+  "login_test": [
+    {
+      "timestamp": "2026-06-08T10:05:00",
+      "error": "TimeoutError: waiting for selector '.welcome-dashboard' to be visible",
+      "stack_trace": "Traceback (most recent call last):\n  File \"tests/test_auth.py\", line 15, in login_test\n    page.wait_for_selector('.welcome-dashboard', timeout=5000)\nTimeoutError: waiting for selector '.welcome-dashboard' to be visible"
+    }
+  ],
+  "search_test": [
+    {
+      "timestamp": "2026-06-08T10:20:00",
+      "error": "AssertionError: Expected search results count to be > 0, got 0",
+      "stack_trace": "Traceback (most recent call last):\n  File \"tests/test_search.py\", line 22, in search_test\n    assert len(results) > 0, f\"Expected search results count to be > 0, got {len(results)}\"\nAssertionError: Expected search results count to be > 0, got 0"
+    }
+  ],
+  "payment_test": [
+    {
+      "timestamp": "2026-06-08T10:30:00",
+      "error": "HTTPError: 504 Gateway Timeout during payment processor API call",
+      "stack_trace": "Traceback (most recent call last):\n  File \"tests/test_payment.py\", line 45, in payment_test\n    response = payment_gateway.charge(amount=100)\n  File \"lib/payment.py\", line 88, in charge\n    raise HTTPError(\"504 Gateway Timeout\")\nurllib.error.HTTPError: HTTP Error 504: Gateway Timeout"
+    },
+    {
+      "timestamp": "2026-06-08T10:35:00",
+      "error": "HTTPError: 504 Gateway Timeout during payment processor API call",
+      "stack_trace": "Traceback (most recent call last):\n  File \"tests/test_payment.py\", line 45, in payment_test\n    response = payment_gateway.charge(amount=100)\n  File \"lib/payment.py\", line 88, in charge\n    raise HTTPError(\"504 Gateway Timeout\")\nurllib.error.HTTPError: HTTP Error 504: Gateway Timeout"
+    }
+  ]
+}
