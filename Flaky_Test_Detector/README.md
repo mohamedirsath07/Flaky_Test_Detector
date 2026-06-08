@@ -1,96 +1,320 @@
 # Flaky Test Detector & Explainer
 
-A hackathon project designed to analyze historical test execution data, detect flaky automated tests, and use an LLM (Large Language Model) to explain possible root causes of those failures.
+An AI-powered system that automatically detects flaky tests from historical test execution data, identifies instability patterns, and generates root-cause explanations with recommended fixes using a local LLM (Ollama + Llama 3).
 
-## Problem Statement
+---
 
-Some automated tests pass sometimes and fail sometimes without any code changes. These are known as **flaky tests**. Flaky tests erode trust in automated test suites, delay releases, and waste engineering time. Identifying flaky tests manually and debugging their root causes is a tedious and time-consuming process.
+## Team Information
 
-## Proposed Solution
+### Team Name
+**Team Syndicates**
 
-The **Flaky Test Detector & Explainer** solves this by:
-1. **Detecting Flakiness**: Analyzing historical test runs to identify tests with inconsistent results (both passes and failures) for the same codebase state.
-2. **Explaining Failures**: Leveraging local LLMs (via Ollama) with structured prompts to analyze failure log outputs, identify the likely root cause (e.g., race conditions, network timeout, database state), and recommend actionable fixes.
-3. **Automated Orchestration**: Providing an intelligent agent loop to automatically scan, detect, explain, and store findings.
+### Team Members
+- Mukkesh
+- Mohamed Irsath
+- Vigneshkumar
+- Ragul
 
-## Architecture Overview
+---
 
-The system is composed of the following components:
-- **Frontend Dashboard (`app.py`)**: A Streamlit user interface to visualize flaky test statistics, view generated explanations, and trigger detection sweeps.
-- **Detector Engine (`detector.py`)**: Responsible for loading and analyzing historical test runs to calculate flakiness metrics.
-- **LLM Explainer (`explainer.py`)**: Interacts with the LLM via Ollama to generate root cause reports based on failure stack traces.
-- **Agent Loop (`agent.py`)**: Coordinates the detector, database, and explainer to run scheduled or trigger-based scans.
-- **Storage Layer (`database.py`)**: SQLite database backed by SQLAlchemy to store test run analysis history and LLM explanations.
+## Project Title
 
-## Folder Structure
+**Flaky Test Detector & Explainer**
+
+---
+
+## Live Demo
+
+🔗 Live Demo: *To be added*
+
+---
+
+# Business Problem
+
+Modern software teams often face **flaky tests** — tests that randomly pass or fail without any code changes.
+
+These failures:
+- Waste developer time
+- Slow down CI/CD pipelines
+- Reduce confidence in automated testing
+- Make debugging difficult
+
+The goal of this project is to automatically identify flaky tests and provide AI-generated explanations for their likely causes.
+
+---
+
+# Solution Overview
+
+The system performs:
+
+1. Historical test execution analysis
+2. Flaky test detection
+3. Failure log analysis
+4. AI-powered root cause explanation
+5. Recommended fix generation
+6. Investigation report generation
+7. Interactive dashboard visualization
+
+---
+
+# Features
+
+### Flaky Test Detection
+- Identifies tests with mixed pass/fail outcomes
+- Calculates flakiness score
+- Assigns severity levels
+
+### AI Root Cause Analysis
+- Uses Ollama + Llama 3
+- Analyzes failure traces
+- Generates:
+  - Root Cause
+  - Confidence Score
+  - Recommended Fixes
+
+### Autonomous Agent Workflow
+- Loads test data
+- Detects flaky tests
+- Collects failure logs
+- Generates explanations
+- Saves results
+- Creates reports
+
+### Interactive Dashboard
+- Upload CSV files
+- View flaky tests
+- Explore AI explanations
+- Run investigations
+- Download reports
+- Chat with data
+
+---
+
+# System Architecture
+
+```text
+CSV / JSON Input
+        │
+        ▼
+Detector Engine
+        │
+        ▼
+Flaky Test Identification
+        │
+        ▼
+Agent Workflow
+        │
+        ▼
+Ollama (Llama 3)
+        │
+        ▼
+Root Cause Analysis
+        │
+        ▼
+SQLite Database
+        │
+        ▼
+Streamlit Dashboard
+        │
+        ▼
+Reports & Insights
+```
+
+## Technology Stack
+
+| Category | Technology |
+|---|---|
+| Programming Language | Python |
+| Frontend | Streamlit |
+| Database | SQLite |
+| AI Model | Ollama + Llama 3 |
+| Data Processing | Pandas |
+| ORM | SQLAlchemy |
+| Testing | Pytest |
+| Version Control | Git & GitHub |
+
+## Project Structure
 
 ```text
 Flaky_Test_Detector/
 │
-├── app.py              # Streamlit Web Application
-├── detector.py         # Flaky Test Detection Logic
-├── explainer.py        # LLM Root Cause Explanation Logic
-├── agent.py            # Agent Orchestration Loop
-├── database.py         # SQLite & SQLAlchemy Database Layer
-├── requirements.txt    # Python Project Dependencies
-├── README.md           # Project Documentation
+├── app.py
+├── detector.py
+├── explainer.py
+├── agent.py
+├── database.py
+├── config.py
 │
-├── data/               # Raw Input Data Store
-│   ├── test_runs.csv   # Historical test execution metadata
-│   └── failure_logs.json # Error logs/stack traces for failed tests
+├── data/
+│   ├── test_runs.csv
+│   └── failure_logs.json
 │
-├── prompts/            # LLM Prompt Templates
-│   └── rootcause.txt   # Prompt structure for root cause analysis
+├── reports/
+│   └── flaky_test_report.json
 │
-├── reports/            # Generated Analysis Reports
-│
-├── tests/              # Automated Test Suite
+├── tests/
 │   └── test_detector.py
 │
-└── assets/             # Media and Static Assets
+├── prompts/
+│   └── rootcause.txt
+│
+├── requirements.txt
+└── README.md
 ```
 
-## Setup Instructions
+## Installation
 
-### Prerequisites
+### Clone Repository
+```bash
+git clone <repository-url>
+cd Flaky_Test_Detector
+```
 
-- Python 3.10 or higher
-- [Ollama](https://ollama.ai/) installed and running locally
+### Create Virtual Environment
+```bash
+python -m venv venv
+```
 
-### Installation
+### Activate Environment
+**Windows:**
+```powershell
+venv\Scripts\activate
+```
+**Linux / Mac:**
+```bash
+source venv/bin/activate
+```
 
-1. Navigate to the project root directory:
-   ```bash
-   cd Flaky_Test_Detector
-   ```
+### Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-2. Create a virtual environment:
-   ```bash
-   python -m venv venv
-   ```
+## Running the Application
 
-3. Activate the virtual environment:
-   - **Windows (PowerShell)**:
-     ```powershell
-     .\venv\Scripts\Activate.ps1
-     ```
-   - **macOS / Linux**:
-     ```bash
-     source venv/bin/activate
-     ```
+### Run Streamlit Dashboard
+```bash
+streamlit run app.py
+```
 
-4. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Run Agent
+```bash
+python agent.py
+```
 
-5. Launch the Streamlit dashboard:
-   ```bash
-   streamlit run app.py
-   ```
+### Run Detector
+```bash
+python detector.py
+```
 
-## Future Enhancements
+---
 
-- **CI/CD Integration**: Automatically ingest test run artifacts from GitHub Actions, GitLab CI, or Jenkins.
-- **Advanced Agent Behavior**: Implement auto-retries of flaky tests in isolated environments to capture dynamic state logs.
-- **Model Fine-Tuning**: Optimize LLM prompt templates and configurations for specialized testing frameworks (e.g., Playwright, Selenium, Pytest).
+# Sample Data Folder
+
+The `data/` folder contains sample datasets used for demonstration.
+
+**`test_runs.csv`**
+Contains:
+- Test Name
+- Status (PASS/FAIL)
+- Duration
+- Timestamp
+
+**`failure_logs.json`**
+Contains:
+- Failure traces
+- Error messages
+- Timeout logs
+- Infrastructure failures
+
+---
+
+# Test Cases
+
+Pytest is used to validate the detection engine.
+
+**Run:**
+```bash
+python -m pytest -v
+```
+
+**Covered Scenarios:**
+- CSV Loading
+- Missing File Handling
+- Invalid Schema Validation
+- Statistics Calculation
+- Flaky Detection Logic
+- Severity Classification
+- Trend Analysis
+
+---
+
+# AI Usage Note
+
+AI tools were actively used during development to accelerate implementation, architecture planning, debugging, testing, and documentation. See `AI_USAGE_NOTE.md` for a detailed breakdown.
+
+**AI Tools Used:**
+- ChatGPT
+- Cursor AI
+- Ollama (Llama 3)
+
+**AI Assistance Areas:**
+- Project architecture design
+- Streamlit dashboard development
+- Agent workflow implementation
+- Database integration
+- Unit test generation
+- Documentation creation
+- Root-cause analysis prompt engineering
+
+---
+
+# AI Capability Demonstrated
+
+### Agent Loop
+The autonomous agent:
+- Loads execution data
+- Detects flaky tests
+- Reads failure logs
+- Invokes LLM analysis
+- Generates explanations
+- Saves results
+- Produces reports
+
+### External Service Integration
+The application integrates with:
+- **Ollama Local AI Service**
+- **Llama 3 Model**
+For automated root-cause analysis and recommendation generation.
+
+---
+
+# Assumptions & Limitations
+
+### Assumptions
+- Historical test execution data is available in CSV format.
+- Failure logs are provided in a structured JSON format.
+- Ollama is installed and running locally on the deployment machine.
+- The Llama 3 model has been pulled and is available via Ollama.
+
+### Limitations
+- Root-cause explanations are AI-generated and may require human validation.
+- Detection accuracy depends heavily on the volume of available historical data.
+- The current implementation focuses on proof-of-concept scale datasets and local execution.
+
+---
+
+# Future Enhancements
+
+- CI/CD Integration
+- Real-time Monitoring
+- Multi-model Support
+- Advanced Trend Forecasting
+- Cloud Deployment
+- Team Collaboration Features
+
+---
+
+# Conclusion
+
+**Flaky Test Detector & Explainer** helps QA and development teams automatically identify unstable tests, understand probable root causes, and reduce debugging effort through AI-powered analysis and automation.
