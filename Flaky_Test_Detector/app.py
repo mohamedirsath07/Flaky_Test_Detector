@@ -9,6 +9,7 @@ import pandas as pd
 import json
 import os
 import sys
+import time
 import subprocess
 from datetime import datetime
 from ollama import Client
@@ -18,8 +19,7 @@ from ui_components import (
     inject_global_css, render_topbar, render_sidebar,
     section_header, metric_row, score_badge,
     upload_card, callout, ai_explanation_card,
-    chat_bubble, empty_state,
-    PRIMARY, ACCENT, WARN, DANGER, BG_CARD, BG_LIGHT, TEXT_MAIN, TEXT_MUTED
+    empty_state, PRIMARY, ACCENT, WARN, DANGER, BG_CARD, BG_LIGHT, TEXT_MAIN, TEXT_MUTED
 )
 
 # Backend Modules
@@ -43,8 +43,8 @@ page = render_sidebar()
 
 # ── Helper Functions ────────────────────────────────────────────────────────
 def compute_stats(df):
-    if "flakiness_score" not in df.columns:
-        return {"total": len(df), "high_flaky": 0, "med_flaky": 0, "low_flaky": 0, "avg_score": 0.0, "worst_test": "None"}
+    if df is None or "flakiness_score" not in df.columns:
+        return {"total": len(df) if df is not None else 0, "high_flaky": 0, "med_flaky": 0, "low_flaky": 0, "avg_score": 0.0, "worst_test": "None"}
     return {
         "total": len(df),
         "high_flaky": int((df["flakiness_score"] >= 0.75).sum()),
@@ -116,31 +116,29 @@ def page_upload():
         csv_file = upload_card("CSV Test Results", "CSV", "📄", ["csv"])
         if csv_file:
             try:
-                # Save to the central data directory for the agent to pick up
                 os.makedirs(os.path.dirname(TEST_RUNS_CSV), exist_ok=True)
                 with open(TEST_RUNS_CSV, "wb") as f:
                     f.write(csv_file.getbuffer())
                 
-                # Load using real detector
-                df = load_test_runs(TEST_RUNS_CSV)
-                df = calculate_test_statistics(df)
-                
-                st.session_state.df = df
-                st.session_state.flaky_results = detect_flaky_tests(df)
+                with st.spinner("🤖 Analyzing flaky test data..."):
+                    df = load_test_runs(TEST_RUNS_CSV)
+                    df = calculate_test_statistics(df)
+                    st.session_state.df = df
+                    st.session_state.flaky_results = detect_flaky_tests(df)
                 callout(f"Loaded and processed <b>{len(df)}</b> records using detector.py", "success")
             except Exception as e:
                 callout(f"Failed to process CSV: {e}", "error")
 
     with col_b:
-        # Check if local data exists
         if os.path.exists(TEST_RUNS_CSV):
             st.markdown(f"<div style='margin-top:10px;text-align:center;'><p style='color:{TEXT_MUTED};'>Existing test_runs.csv detected.</p></div>", unsafe_allow_html=True)
             if st.button("Load Existing Local Data", use_container_width=True):
                 try:
-                    df = load_test_runs(TEST_RUNS_CSV)
-                    df = calculate_test_statistics(df)
-                    st.session_state.df = df
-                    st.session_state.flaky_results = detect_flaky_tests(df)
+                    with st.spinner("🤖 Loading local data..."):
+                        df = load_test_runs(TEST_RUNS_CSV)
+                        df = calculate_test_statistics(df)
+                        st.session_state.df = df
+                        st.session_state.flaky_results = detect_flaky_tests(df)
                     callout("Loaded local data from data/test_runs.csv", "success")
                 except Exception as e:
                     callout(f"Failed to load: {e}", "error")
@@ -182,8 +180,29 @@ def page_table():
     if not flaky:
         empty_state("👍", "Perfect!", "No flaky tests were detected in this dataset.")
     else:
-        # Convert flaky_results back to DataFrame for display
+        # Create a DataFrame from the results for filtering
         flaky_df = pd.DataFrame(flaky)
+        
+        # Filtering Controls
+        c1, c2, c3 = st.columns([2, 1, 1])
+        with c1:
+            search_query = st.text_input("🔍 Search Test Name", placeholder="e.g. login_test")
+        with c2:
+            sev_filter = st.selectbox("Severity Filter", ["All", "HIGH", "MEDIUM", "LOW"])
+        with c3:
+            sort_order = st.selectbox("Sort Score By", ["Descending ↓", "Ascending ↑"])
+            
+        # Apply filters
+        if search_query:
+            flaky_df = flaky_df[flaky_df['test_name'].str.contains(search_query, case=False, na=False)]
+        if sev_filter != "All":
+            flaky_df = flaky_df[flaky_df['severity'] == sev_filter]
+            
+        # Apply sort
+        asc = sort_order == "Ascending ↑"
+        if "flakiness_score" in flaky_df.columns:
+            flaky_df = flaky_df.sort_values(by="flakiness_score", ascending=asc)
+            
         st.dataframe(flaky_df, use_container_width=True)
 
 
@@ -233,31 +252,40 @@ def page_agent():
     st.markdown("Trigger the `agent.py` script to run the 7-step autonomous investigation workflow.")
 
     if st.button("🚀 Run Full Investigation", use_container_width=True):
-        st.markdown("---")
-        log_container = st.empty()
-        log_text = ""
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        # Execute agent.py as a subprocess and stream output
-        process = subprocess.Popen(
-            [sys.executable, os.path.join(os.path.dirname(__file__), "agent.py")],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding='utf-8',
-            errors='replace'
-        )
+        with st.status("🤖 Executing Autonomous Agent Workflow...", expanded=True) as status:
+            log_container = st.empty()
+            log_text = ""
+            
+            try:
+                # Execute agent.py as a subprocess and stream output
+                process = subprocess.Popen(
+                    [sys.executable, os.path.join(os.path.dirname(__file__), "agent.py")],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                    encoding='utf-8',
+                    errors='replace'
+                )
 
-        for line in iter(process.stdout.readline, ''):
-            log_text += line
-            log_container.code(log_text, language="log")
+                for line in iter(process.stdout.readline, ''):
+                    log_text += line
+                    log_container.code(log_text, language="log")
 
-        process.stdout.close()
-        process.wait()
+                process.stdout.close()
+                process.wait()
 
-        if process.returncode == 0:
-            callout("Agent execution completed successfully! Head to AI Explanations to see results.", "success")
-        else:
-            callout(f"Agent execution failed with return code {process.returncode}.", "error")
+                if process.returncode == 0:
+                    status.update(label="Agent execution completed successfully!", state="complete", expanded=False)
+                    st.balloons()
+                    callout("Pipeline complete! Head to AI Explanations to see results.", "success")
+                else:
+                    status.update(label="Agent execution failed", state="error", expanded=True)
+                    callout(f"Execution failed with return code {process.returncode}.", "error")
+            except Exception as e:
+                status.update(label="Error launching subprocess", state="error")
+                callout(f"Could not start agent: {e}", "error")
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -269,8 +297,9 @@ def page_history():
     section_header("📜", "Historical Database", "Loaded directly from SQLite")
 
     try:
-        initialize_database()
-        results = get_all_results()
+        with st.spinner("Loading database records..."):
+            initialize_database()
+            results = get_all_results()
         
         if not results:
             empty_state("📜", "Database is Empty", "No records found in SQLite. Run the agent first.")
@@ -289,10 +318,24 @@ def page_history():
             
         df = pd.DataFrame(data)
         
-        # Sidebar filters
-        severity_filter = st.selectbox("Filter Severity", ["All", "HIGH", "MEDIUM", "LOW"])
-        if severity_filter != "All":
-            df = df[df["Severity"] == severity_filter]
+        # Controls
+        c1, c2, c3 = st.columns([2, 1, 1])
+        with c1:
+            h_search = st.text_input("🔍 Search Historical Tests", placeholder="e.g. payment_test")
+        with c2:
+            h_sev = st.selectbox("Severity", ["All", "HIGH", "MEDIUM", "LOW"])
+        with c3:
+            h_sort = st.selectbox("Sort By Time", ["Newest First", "Oldest First"])
+
+        if h_search:
+            df = df[df["Test Name"].str.contains(h_search, case=False, na=False)]
+        if h_sev != "All":
+            df = df[df["Severity"] == h_sev]
+            
+        if h_sort == "Newest First":
+            df = df.sort_values(by="ID", ascending=False)
+        else:
+            df = df.sort_values(by="ID", ascending=True)
             
         st.dataframe(df, use_container_width=True, hide_index=True)
         
@@ -374,31 +417,34 @@ def page_chat():
 
     df = st.session_state.df
 
-    # ── History ──
+    # ── Render Message History ──
+    for msg in st.session_state.chat_history:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
+
     if not st.session_state.chat_history:
         empty_state("💬", "Start the conversation", "Type your question below to ask the local AI.")
-    else:
-        for msg in st.session_state.chat_history:
-            chat_bubble(msg["role"], msg["content"])
 
-    # ── Input ──
-    st.markdown("<br>", unsafe_allow_html=True)
-    inp_col, btn_col = st.columns([5,1])
-    with inp_col:
-        user_input = st.text_input("", placeholder="Ask about your flaky tests…",
-                                   label_visibility="collapsed", key="chat_input")
-    with btn_col:
-        send = st.button("Send ➤", use_container_width=True)
+    # ── Native Chat Input ──
+    # st.chat_input automatically clears the input box, handles Enter-to-send, and Shift+Enter for newlines.
+    if prompt := st.chat_input("Ask about your flaky tests (Press Enter to send)..."):
+        # Display user message immediately
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        st.session_state.chat_history.append({"role": "user", "content": prompt})
 
-    if send and user_input.strip():
-        st.session_state.chat_history.append({"role": "user", "content": user_input})
-        with st.spinner("Ollama is thinking…"):
-            ans = answer_question_with_ai(user_input, df, st.session_state.chat_history)
-        st.session_state.chat_history.append({"role": "assistant", "content": ans})
-        st.rerun()
+        # Display assistant message container while generating
+        with st.chat_message("assistant"):
+            with st.spinner("🤖 Ollama is analyzing..."):
+                response = answer_question_with_ai(prompt, df, st.session_state.chat_history)
+            st.markdown(response)
+
+        st.session_state.chat_history.append({"role": "assistant", "content": response})
 
     if st.session_state.chat_history:
-        if st.button("🗑 Clear chat"):
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🗑 Clear chat history"):
             st.session_state.chat_history = []
             st.rerun()
 
