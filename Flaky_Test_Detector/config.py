@@ -25,4 +25,4 @@ OLLAMA_MODEL = "llama3"
 
 # Groq Cloud configuration (Fallback)
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", None)
-GROQ_MODEL = "llama3-8b-8192"
+GROQ_MODEL = "llama-3.1-8b-instant"
