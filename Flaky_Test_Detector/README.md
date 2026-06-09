@@ -25,7 +25,7 @@ An AI-powered system that automatically detects flaky tests from historical test
 
 ## Live Demo
 
-🔗 Live Demo: *To be added*
+🔗 Live Demo: [https://flaky-test-frontend.vercel.app/](https://flaky-test-frontend.vercel.app/)
 
 ---
 
