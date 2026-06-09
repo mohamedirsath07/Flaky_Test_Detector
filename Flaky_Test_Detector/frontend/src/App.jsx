@@ -287,11 +287,7 @@ const DataTableView = ({ data }) => {
   }).sort((a, b) => b.score - a.score);
 
   return (
-    <Card className="h-full flex flex-col" title="Test Suite Inventory" icon={TableIcon} action={
-      <button className="text-xs flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-md border border-slate-700 transition-colors">
-        <Download size={14} /> Export CSV
-      </button>
-    }>
+    <Card className="h-full flex flex-col" title="Test Suite Inventory" icon={TableIcon}>
       <div className="flex gap-4 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 text-slate-500" size={16} />
