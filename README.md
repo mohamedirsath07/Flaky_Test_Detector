@@ -6,8 +6,7 @@ An AI-powered system that automatically detects flaky tests from historical test
 
 ## Team Information
 
-### Team Name
-**Team Syndicates**
+**Team Name : Team Syndicate**
 
 ### Team Members
 - Mukkesh
@@ -185,7 +184,7 @@ Flaky_Test_Detector/
 ### Clone Repository
 ```bash
 git clone https://github.com/mohamedirsath07/Flaky_Test_Detector.git
-cd Flaky_Test_Detector
+cd Flaky_Test_Detector/Flaky_Test_Detector
 ```
 
 ### Backend Setup (Python)
