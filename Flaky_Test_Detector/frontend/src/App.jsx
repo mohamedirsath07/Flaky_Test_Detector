@@ -85,10 +85,21 @@ const UploadView = ({ onUpload }) => {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      await axios.post("http://localhost:8000/api/upload", formData, {
+      const uploadRes = await axios.post("http://localhost:8000/api/upload", formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      await processData();
+      
+      const response = await axios.get("http://localhost:8000/api/flaky-tests");
+      if (!response.data || response.data.length === 0) {
+        setError("No tests found after upload.");
+        setLoading(false);
+        return;
+      }
+      
+      onUpload(response.data, {
+        mapping: uploadRes.data.mapping,
+        warnings: uploadRes.data.warnings
+      });
     } catch (e) {
       setError("Error uploading file: " + (e.response?.data?.error || e.message));
       console.error(e);
@@ -160,7 +171,7 @@ const UploadView = ({ onUpload }) => {
   );
 };
 
-const DashboardView = ({ data }) => {
+const DashboardView = ({ data, schemaReport }) => {
   const total = data.length;
   const high = data.filter(d => d.score >= 75).length;
   const med = data.filter(d => d.score >= 40 && d.score < 75).length;
@@ -182,6 +193,43 @@ const DashboardView = ({ data }) => {
           </div>
         ))}
       </div>
+
+      {schemaReport && (schemaReport.mapping || (schemaReport.warnings && schemaReport.warnings.length > 0)) && (
+        <Card title="Schema Detection Report" icon={CheckCircle}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-xs font-mono text-slate-500 mb-3 uppercase tracking-wider">Detected Columns</h4>
+              <ul className="space-y-2">
+                {Object.entries(schemaReport.mapping || {}).map(([orig, internal]) => (
+                  <li key={orig} className="flex items-center gap-2 text-sm text-slate-300">
+                    <CheckCircle size={14} className="text-teal-400" />
+                    <span className="font-mono text-teal-300">{internal}</span>
+                    <span className="text-slate-500 text-xs">← mapped from ←</span>
+                    <span className="font-medium">{orig}</span>
+                  </li>
+                ))}
+                {Object.keys(schemaReport.mapping || {}).length === 0 && (
+                  <span className="text-sm text-slate-500">No columns explicitly mapped. Defaults applied.</span>
+                )}
+              </ul>
+            </div>
+            
+            {schemaReport.warnings && schemaReport.warnings.length > 0 && (
+              <div>
+                <h4 className="text-xs font-mono text-slate-500 mb-3 uppercase tracking-wider">Inference Warnings</h4>
+                <ul className="space-y-2">
+                  {schemaReport.warnings.map((warn, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm text-amber-300 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-lg">
+                      <AlertTriangle size={16} className="shrink-0 mt-0.5" />
+                      <span>{warn}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card title="Top Critical Tests" icon={AlertTriangle}>
@@ -534,6 +582,7 @@ const ChatView = () => {
 // --- MAIN APP COMPONENT ---
 export default function App() {
   const [data, setData] = useState(null);
+  const [schemaReport, setSchemaReport] = useState(null);
   const [activeTab, setActiveTab] = useState('upload');
 
   const navItems = [
@@ -547,8 +596,8 @@ export default function App() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'upload': return <UploadView onUpload={(d) => { setData(d); setActiveTab('dashboard'); }} />;
-      case 'dashboard': return <DashboardView data={data} />;
+      case 'upload': return <UploadView onUpload={(d, report) => { setData(d); setSchemaReport(report); setActiveTab('dashboard'); }} />;
+      case 'dashboard': return <DashboardView data={data} schemaReport={schemaReport} />;
       case 'table': return <DataTableView data={data} />;
       case 'ai': return <ExplanationView data={data} />;
       case 'agent': return <AgentTerminalView />;

@@ -10,7 +10,9 @@ import logging
 import re
 from typing import Optional
 
+import requests
 import ollama
+from config import GROQ_API_KEY, GROQ_MODEL
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(message)s')
@@ -122,21 +124,27 @@ def generate_explanation(test_name: str, score: float, logs: list[str]) -> dict:
         ])
         logger.info("Ollama response received")
         content = response["message"]["content"]
-
-    except ollama.ResponseError as e:
-        if e.status_code == 404:
-            logger.error("Model 'llama3' not found.")
-            return {"error": "Model 'llama3' not found. Run 'ollama pull llama3'."}
-        logger.error(f"Ollama API Error: {e}")
-        return {"error": f"Ollama API Error: {e}"}
-
     except Exception as e:
-        error_msg = str(e).lower()
-        if "connect" in error_msg or "timeout" in error_msg:
-            logger.error("Connection failed")
-            return {"error": "Connection failed or timeout. Is Ollama running?"}
-        logger.error(f"Unexpected error: {e}")
-        return {"error": f"Unexpected error: {e}"}
+        logger.warning(f"Ollama failed ({e}). Falling back to Groq API...")
+        if not GROQ_API_KEY:
+            return {"error": "Ollama failed and GROQ_API_KEY is not set. Please set it or start Ollama."}
+            
+        try:
+            headers = {
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": GROQ_MODEL,
+                "messages": [{"role": "user", "content": prompt}]
+            }
+            res = requests.post("https://api.groq.com/openai/v1/chat/completions", json=payload, headers=headers)
+            res.raise_for_status()
+            content = res.json()["choices"][0]["message"]["content"]
+            logger.info("Groq API response received")
+        except Exception as groq_e:
+            logger.error(f"Groq fallback failed: {groq_e}")
+            return {"error": f"Both Ollama and Groq failed. Groq error: {groq_e}"}
 
     # Step 4: Parse response
     parsed = _parse_llm_response(content)

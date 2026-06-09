@@ -17,6 +17,8 @@ AI was actively utilized throughout the software development lifecycle to accele
 - **Agent Workflow Implementation**: Designing the orchestration loop to seamlessly connect flaky test detection with AI-driven explanations.
 - **Database Integration**: Setting up robust SQLAlchemy models and SQLite connection management logic.
 - **Unit Test Generation**: Creating comprehensive `pytest` test cases, including fixtures, edge cases (missing files, invalid schemas), and logic verifications to achieve a 100% pass rate.
+- **Universal Parser Engine**: Refactoring strict CSV ingestion into a flexible, schema-agnostic mapping engine that infers missing columns using data heuristics.
+- **API Fallbacks**: Implementing a seamless failover mechanism between local Ollama and the external Groq Cloud API for maximum reliability.
 - **Documentation**: Structuring and formatting professional markdown files (like the `README.md`).
 - **Prompt Engineering**: Refining the instructional prompts sent to the local LLM to ensure structured and accurate root-cause analysis outputs.
 

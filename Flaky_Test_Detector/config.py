@@ -4,6 +4,9 @@ Centralized configuration settings for the Flaky Test Detector project.
 """
 
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Base directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -19,3 +22,7 @@ DATABASE_URL = f"sqlite:///{DATABASE_NAME}"
 
 # Ollama model configuration
 OLLAMA_MODEL = "llama3"
+
+# Groq Cloud configuration (Fallback)
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", None)
+GROQ_MODEL = "llama3-8b-8192"

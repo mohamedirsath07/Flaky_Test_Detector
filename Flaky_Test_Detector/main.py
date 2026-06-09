@@ -56,10 +56,34 @@ def get_flaky_tests():
 async def upload_file(file: UploadFile = File(...)):
     try:
         content = await file.read()
+        
+        # Write to a temporary file
+        import tempfile
+        ext = os.path.splitext(file.filename)[1]
+        if not ext:
+            ext = ".csv"
+        
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+            tmp.write(content)
+            tmp_path = tmp.name
+            
+        # Parse and normalize using the universal parser
+        from parsers.universal_parser import load_file
+        df, mapping, warnings = load_file(tmp_path)
+        
+        # Save standard schema to the expected project CSV location
         os.makedirs(os.path.dirname(TEST_RUNS_CSV), exist_ok=True)
-        with open(TEST_RUNS_CSV, "wb") as f:
-            f.write(content)
-        return {"filename": file.filename, "status": "success"}
+        df.to_csv(TEST_RUNS_CSV, index=False)
+        
+        # Clean up
+        os.remove(tmp_path)
+        
+        return {
+            "filename": file.filename, 
+            "status": "success",
+            "mapping": mapping,
+            "warnings": warnings
+        }
     except Exception as e:
         return {"error": str(e)}
 
@@ -76,10 +100,38 @@ def api_run_agent():
 async def chat(request: dict):
     # Proxy to ollama
     try:
-        response = requests.post("http://127.0.0.1:11434/api/chat", json=request)
+        response = requests.post("http://127.0.0.1:11434/api/chat", json=request, timeout=2)
+        response.raise_for_status()
         return response.json()
     except Exception as e:
-        return {"error": str(e)}
+        # Fallback to Groq
+        from config import GROQ_API_KEY, GROQ_MODEL
+        if not GROQ_API_KEY:
+            return {"error": f"Ollama failed ({e}) and GROQ_API_KEY is not set."}
+            
+        try:
+            headers = {
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            # Convert Ollama payload to OpenAI format
+            payload = {
+                "model": GROQ_MODEL,
+                "messages": request.get("messages", [])
+            }
+            res = requests.post("https://api.groq.com/openai/v1/chat/completions", json=payload, headers=headers)
+            res.raise_for_status()
+            
+            groq_data = res.json()
+            # Convert OpenAI response format back to Ollama format
+            return {
+                "message": {
+                    "role": "assistant",
+                    "content": groq_data["choices"][0]["message"]["content"]
+                }
+            }
+        except Exception as groq_e:
+            return {"error": f"Fallback to Groq failed: {groq_e}"}
 
 @app.get("/api/reports")
 def get_reports():

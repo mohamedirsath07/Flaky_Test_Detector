@@ -10,57 +10,19 @@ logger = logging.getLogger(__name__)
 
 def load_test_runs(file_path: str) -> pd.DataFrame:
     """
-    Loads test execution history from a CSV file.
+    Loads test execution history using the Universal Parser.
     
     Args:
-        file_path (str): Path to the CSV file.
+        file_path (str): Path to the log file.
         
     Returns:
-        pd.DataFrame: DataFrame containing test run data.
-        
-    Raises:
-        FileNotFoundError: If the file does not exist.
-        pd.errors.EmptyDataError: If the file is empty.
-        ValueError: If required columns are missing.
+        pd.DataFrame: Normalized DataFrame containing test run data.
     """
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(f"Test run file not found: {file_path}")
-        
-    try:
-        df = pd.read_csv(file_path)
-    except pd.errors.EmptyDataError:
-        raise pd.errors.EmptyDataError(f"The file {file_path} is empty.")
-        
-    # Standardize column names based on common patterns
-    col_mapping = {
-        'duration_seconds': 'duration',
-        'time': 'duration',
-        'run_time': 'duration',
-        'run_date': 'timestamp',
-        'date': 'timestamp',
-        'result': 'status',
-        'outcome': 'status',
-        'name': 'test_name',
-        'error_type': 'status' # Log files usually list errors
-    }
-    df.rename(columns={k: v for k, v in col_mapping.items() if k in df.columns}, inplace=True)
+    from parsers.universal_parser import load_file
+    df, mapping, warnings = load_file(file_path)
     
-    # Fill in missing required columns with safe defaults
-    if 'test_name' not in df.columns:
-        df['test_name'] = df.iloc[:, 0] if not df.empty and len(df.columns) > 0 else 'Unknown_Test'
-        
-    if 'status' not in df.columns:
-        df['status'] = 'failed' # Default to failed if it's just an error log
-        
-    if 'duration' not in df.columns:
-        df['duration'] = 0.0
-        
-    if 'timestamp' not in df.columns:
-        df['timestamp'] = pd.Timestamp.now()
-        
-    # Normalize statuses to 'passed' and 'failed' so the statistics logic works
-    df['status'] = df['status'].astype(str).str.lower()
-    df['status'] = df['status'].apply(lambda x: 'passed' if 'pass' in x or 'success' in x or x == 'ok' else 'failed')
+    for w in warnings:
+        logger.warning(w)
         
     return df
 

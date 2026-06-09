@@ -41,7 +41,7 @@ def sample_dataframe():
 def test_load_test_runs_success(sample_csv_data):
     df = load_test_runs(sample_csv_data)
     assert not df.empty
-    assert list(df.columns) == ["test_name", "status", "duration", "timestamp"]
+    assert list(df.columns) == ["test_name", "status", "duration", "timestamp", "run_id"]
     assert len(df) == 3
 
 def test_load_test_runs_missing_file():
@@ -51,7 +51,7 @@ def test_load_test_runs_missing_file():
 def test_load_test_runs_empty_file(tmp_path):
     filepath = tmp_path / "empty.csv"
     filepath.touch()
-    with pytest.raises(pd.errors.EmptyDataError):
+    with pytest.raises(ValueError):
         load_test_runs(str(filepath))
 
 def test_load_test_runs_invalid_columns(tmp_path):

@@ -59,13 +59,20 @@ The system performs:
 
 # Features
 
+### Universal Data Parser
+- Supports CSV, JSON, and Excel formats
+- Automatically detects schemas and maps columns
+- Uses AI heuristics to infer missing data types
+- Never crashes on missing columns; gracefully falls back with warnings
+
 ### Flaky Test Detection
 - Identifies tests with mixed pass/fail outcomes
 - Calculates flakiness score
 - Assigns severity levels
 
 ### AI Root Cause Analysis
-- Uses Ollama + Llama 3
+- Uses Ollama (Llama 3) locally for privacy
+- **Seamless Fallback**: Automatically routes to blazing-fast Groq API if local model is offline
 - Analyzes failure traces
 - Generates:
   - Root Cause
@@ -145,6 +152,8 @@ Flaky_Test_Detector/
 ├── agent.py
 ├── database.py
 ├── config.py
+├── parsers/
+│   └── universal_parser.py
 │
 ├── frontend/ (React Vite App)
 │   ├── src/
@@ -191,6 +200,9 @@ cd Flaky_Test_Detector
    ```bash
    pip install -r requirements.txt
    ```
+4. **Environment Variables:**
+   - Create a `.env` file in the root directory.
+   - Add your Groq API key: `GROQ_API_KEY=gsk_...` (Used as a fallback if local Ollama is not running).
 
 ### Frontend Setup (Node.js)
 ```bash
