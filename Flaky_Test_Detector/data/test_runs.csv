@@ -1,6 +1,0 @@
-test_name,total_runs,pass_count,fail_count
-test_login,50,35,15
-test_signup,50,50,0
-test_payment,50,32,18
-test_search,50,50,0
-test_profile_update,50,38,12

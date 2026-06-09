@@ -128,6 +128,8 @@ async def chat(request: dict):
                 "messages": request.get("messages", [])
             }
             res = requests.post("https://api.groq.com/openai/v1/chat/completions", json=payload, headers=headers)
+            if not res.ok:
+                return {"error": f"Groq Error: {res.text}"}
             res.raise_for_status()
             
             groq_data = res.json()
