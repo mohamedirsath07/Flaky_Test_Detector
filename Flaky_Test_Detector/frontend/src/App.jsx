@@ -7,6 +7,8 @@ import {
   Cpu, History, Clock
 } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 const MOCK_EXPLANATIONS = {
   "test_data_export": {
     tier: "high", confidence: 94,
@@ -62,7 +64,7 @@ const UploadView = ({ onUpload }) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get("http://localhost:8000/api/flaky-tests");
+      const response = await axios.get(`${API_BASE_URL}/api/flaky-tests`);
       
       if (!response.data || response.data.length === 0) {
         setError("No tests found. Please upload a CSV first.");
@@ -85,11 +87,11 @@ const UploadView = ({ onUpload }) => {
     const formData = new FormData();
     formData.append("file", file);
     try {
-      const uploadRes = await axios.post("http://localhost:8000/api/upload", formData, {
+      const uploadRes = await axios.post(`${API_BASE_URL}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
-      const response = await axios.get("http://localhost:8000/api/flaky-tests");
+      const response = await axios.get(`${API_BASE_URL}/api/flaky-tests`);
       if (!response.data || response.data.length === 0) {
         setError("No tests found after upload.");
         setLoading(false);
@@ -425,7 +427,7 @@ const AgentTerminalView = () => {
     setIsRunning(true);
     setLogs(["[SYSTEM] Initializing Agent Environment...", "[SYSTEM] Connecting to local Ollama service...", ""]);
     
-    axios.post("http://localhost:8000/api/run-agent").catch(console.error);
+    axios.post(`${API_BASE_URL}/api/run-agent`).catch(console.error);
     
     const sequence = [
       "[AGENT] Reading data/test_runs.csv...",
@@ -534,7 +536,7 @@ const ChatView = () => {
     setIsTyping(true);
 
     try {
-      const response = await axios.post("http://localhost:8000/api/chat", {
+      const response = await axios.post(`${API_BASE_URL}/api/chat`, {
         messages: newMessages
       });
       
