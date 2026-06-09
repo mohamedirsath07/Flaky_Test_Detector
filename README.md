@@ -1,14 +1,15 @@
 # Flaky Test Detector & Explainer
 
-A tool that automatically finds flaky tests in your test suite, analyses why they fail, and suggests fixes using a local large language model (Ollama + Llama 3).
+An AI-powered system that automatically detects flaky tests from historical test execution data, identifies instability patterns, and generates root-cause explanations with recommended fixes using a local LLM (Ollama + Llama 3).
 
 ---
 
 ## Team Information
 
-**Team Name:** Team Syndicates
+### Team Name
+**Team Syndicates**
 
-**Team Members:**
+### Team Members
 - Mukkesh
 - Mohamed Irsath
 - Vigneshkumar
@@ -24,129 +25,275 @@ A tool that automatically finds flaky tests in your test suite, analyses why the
 
 ## Live Demo
 
-🔗 Live Demo: *To be added*
+🔗 Live Demo: [https://flaky-test-frontend.vercel.app/](https://flaky-test-frontend.vercel.app/)
 
 ---
 
-## Business Problem
+# Business Problem
 
-Flaky tests—tests that pass or fail intermittently without code changes—are a common pain point for modern software teams. They:
-- Waste developer time debugging false failures
+Modern software teams often face **flaky tests** — tests that randomly pass or fail without any code changes.
+
+These failures:
+- Waste developer time
 - Slow down CI/CD pipelines
-- Undermine confidence in automated testing
+- Reduce confidence in automated testing
+- Make debugging difficult
 
-Our goal is to automatically surface flaky tests and provide understandable explanations for their behavior.
-
----
-
-## Solution Overview
-
-The system performs the following steps:
-1. Analyzes historical test execution data
-2. Detects flaky tests and calculates a flakiness score
-3. Collects failure logs for the identified tests
-4. Generates AI‑driven root‑cause explanations
-5. Suggests possible fixes
-6. Produces a concise investigation report
-7. Shows results in an interactive dashboard
+The goal of this project is to automatically identify flaky tests and provide AI-generated explanations for their likely causes.
 
 ---
 
-## Features
+# Solution Overview
+
+The system performs:
+
+1. Historical test execution analysis
+2. Flaky test detection
+3. Failure log analysis
+4. AI-powered root cause explanation
+5. Recommended fix generation
+6. Investigation report generation
+7. Interactive dashboard visualization
+
+---
+
+# Features
+
+### Universal Data Parser
+- Supports CSV, JSON, and Excel formats
+- Automatically detects schemas and maps columns
+- Uses AI heuristics to infer missing data types
+- Never crashes on missing columns; gracefully falls back with warnings
 
 ### Flaky Test Detection
-- Finds tests with mixed pass/fail outcomes
-- Computes a flakiness score and categorises severity
+- Identifies tests with mixed pass/fail outcomes
+- Calculates flakiness score
+- Assigns severity levels
 
-### AI‑Powered Root‑Cause Analysis
-- Leverages Ollama + Llama 3 locally
-- Analyses failure traces and outputs:
-  - Root cause description
-  - Confidence score
-  - Recommended fixes
+### AI Root Cause Analysis
+- Uses Ollama (Llama 3) locally for privacy
+- **Seamless Fallback**: Automatically routes to blazing-fast Groq API if local model is offline
+- Analyzes failure traces
+- Generates:
+  - Root Cause
+  - Confidence Score
+  - Recommended Fixes
 
 ### Autonomous Agent Workflow
 - Loads test data
 - Detects flaky tests
-- Collects logs
+- Collects failure logs
 - Generates explanations
-- Saves results and creates reports
+- Saves results
+- Creates reports
 
 ### Interactive Dashboard
-- Upload CSV of test results
-- Browse flaky tests and AI explanations
-- Trigger investigations on demand
-- Download generated reports
-- Chat with the data for ad‑hoc queries
+- Upload CSV files
+- View flaky tests
+- Explore AI explanations
+- Run investigations
+- Download reports
+- Chat with data
 
 ---
 
-## System Architecture
+# System Architecture
 
-```
+```text
 CSV / JSON Input
-    │
-    ▼
+        │
+        ▼
 Detector Engine
-    │
-    ▼
+        │
+        ▼
 Flaky Test Identification
-    │
-    ▼
+        │
+        ▼
 Agent Workflow
-    │
-    ▼
-Ollama (Llama 3)
-    │
-    ▼
-Root‑Cause Analysis
-    │
-    ▼
+        │
+        ▼
+Ollama (Llama 3)
+        │
+        ▼
+Root Cause Analysis
+        │
+        ▼
 SQLite Database
-    │
-    ▼
-Streamlit Dashboard
-    │
-    ▼
-Reports & Insights
+        │
+        ▼
+FastAPI Backend
+        │
+        ▼
+React + Vite Frontend
 ```
 
----
+## Technology Stack
 
-## Setup & Installation
+| Category | Technology |
+|---|---|
+| Programming Language | Python, JavaScript |
+| Frontend | React, Vite, Tailwind CSS v4, Axios, Lucide React, Recharts |
+| Backend API | FastAPI, Uvicorn |
+| Database | SQLite |
+| AI Model | Ollama + Llama 3 |
+| Data Processing | Pandas |
+| ORM | SQLAlchemy |
+| Testing | Pytest |
+| Version Control | Git & GitHub |
 
-### Prerequisites
-- Python 3.9+
-- Ollama installed locally with the `llama3` model (`ollama run llama3`)
+## Project Structure
 
-### Installation Steps
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Mukkesh16/Flaky_Test_Detector.git
-   cd Flaky_Test_Detector
-   ```
-2. Create and activate a virtual environment:
+```text
+Flaky_Test_Detector/
+│
+├── main.py (FastAPI Backend)
+├── detector.py
+├── explainer.py
+├── agent.py
+├── database.py
+├── config.py
+├── parsers/
+│   └── universal_parser.py
+│
+├── frontend/ (React Vite App)
+│   ├── src/
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   └── package.json
+│
+├── data/
+│   ├── test_runs.csv
+│   ├── failure_logs.json
+│   └── expected_outputs/
+│
+├── reports/
+│   └── flaky_test_report.json
+│
+├── tests/
+│   └── test_detector.py
+│
+├── prompts/
+│   └── rootcause.txt
+│
+├── requirements.txt
+└── README.md
+```
+
+## Installation
+
+### Clone Repository
+```bash
+git clone https://github.com/mohamedirsath07/Flaky_Test_Detector.git
+cd Flaky_Test_Detector
+```
+
+### Backend Setup (Python)
+1. **Create Virtual Environment:**
    ```bash
    python -m venv venv
-   .\venv\Scripts\activate   # on Windows
    ```
-3. Install the required packages:
+2. **Activate Environment:**
+   - Windows: `venv\Scripts\activate`
+   - Linux/Mac: `source venv/bin/activate`
+3. **Install Dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
+4. **Environment Variables:**
+   - Create a `.env` file in the root directory.
+   - Add your Groq API key: `GROQ_API_KEY=gsk_...` (Used as a fallback if local Ollama is not running).
 
-### Running the Application
-Start the dashboard with:
+### Frontend Setup (Node.js)
 ```bash
-streamlit run Flaky_Test_Detector/app.py
+cd frontend
+npm install
 ```
-(If you prefer the full Windows path, use `.\venv\Scripts\python.exe -m streamlit run Flaky_Test_Detector\app.py`.)
+
+## Running the Application
+
+You need to run two processes simultaneously.
+
+### 1. Run FastAPI Backend
+Open a terminal in the root directory:
+```bash
+python main.py
+```
+The API will run on `http://localhost:8000`
+
+### 2. Run React Frontend
+Open another terminal in the `frontend/` directory:
+```bash
+npm run dev
+```
+The dashboard will open at `http://localhost:5173`
 
 ---
 
-## Tech Stack
-- **Frontend:** Streamlit
-- **Backend:** Python 3
-- **Data Processing:** Pandas
-- **Database:** SQLite + SQLAlchemy
-- **AI/LLM:** Ollama (Llama 3)
+# Sample Data Folder
+
+The `data/` folder contains sample datasets used for demonstration.
+
+**`test_runs.csv`**
+Contains:
+- Test Name
+- Status (PASS/FAIL)
+- Duration
+- Timestamp
+
+**`failure_logs.json`**
+Contains:
+- Failure traces
+- Error messages
+- Timeout logs
+
+**`expected_outputs/`**
+Contains pre-generated AI reports (`report.json`) to demonstrate the final output format generated by the Agent.
+
+---
+
+# Test Cases
+
+Pytest is used to validate the detection engine.
+
+**Run:**
+```bash
+python -m pytest -v
+```
+
+**Covered Scenarios:**
+- CSV Loading (with graceful defaults for missing columns)
+- Missing File Handling
+- Empty File Handling
+- Statistics Calculation
+- Flaky Detection Logic
+- Severity Classification
+- Trend Analysis
+
+---
+
+# AI Usage Note
+
+AI tools were actively used during development to accelerate implementation, architecture planning, debugging, testing, and documentation. See `AI_USAGE_NOTE.md` for a detailed breakdown.
+
+**AI Tools Used:**
+- ChatGPT
+- Cursor AI
+- Ollama (Llama 3)
+
+---
+
+# Future Enhancements
+
+- CI/CD Integration
+- Real-time Monitoring
+- Multi-model Support
+- Advanced Trend Forecasting
+- Cloud Deployment
+- Team Collaboration Features
+
+---
+
+# Conclusion
+
+**Flaky Test Detector & Explainer** helps QA and development teams automatically identify unstable tests, understand probable root causes, and reduce debugging effort through AI-powered analysis and automation.
