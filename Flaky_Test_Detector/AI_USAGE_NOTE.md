@@ -4,7 +4,8 @@ This document summarizes how Artificial Intelligence tools were utilized during 
 
 ## AI Tools Used
 - **ChatGPT**
-- **Cursor AI**
+- **Claude**
+- **Gemini**
 - **Ollama (Local Llama 3)**
 
 ---

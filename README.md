@@ -277,7 +277,8 @@ AI tools were actively used during development to accelerate implementation, arc
 
 **AI Tools Used:**
 - ChatGPT
-- Cursor AI
+- Claude
+- Gemini
 - Ollama (Llama 3)
 
 ---
